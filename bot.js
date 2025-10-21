@@ -78,10 +78,10 @@ const client = new Client({
 
 // Uses Mongoose to initialise the mongodb connection.
 if (process.env.NODE_ENV === "production") {
-    mongoose
-        .connect(mongoURI)
-        .then(() => console.log("Connected to MongoDB."))
-        .catch(err => console.error("Error connecting to MongoDB:", err));
+	mongoose
+		.connect(mongoURI)
+		.then(() => console.log("Connected to MongoDB."))
+		.catch(err => console.error("Error connecting to MongoDB:", err));
 }
 
 // initialises the event handling files.
@@ -119,24 +119,30 @@ client.triggers = new Collection();
 // Registration of Message-Based Legacy Commands.
 
 const commandFolderPath = path.join(__dirname, "commands");
-const commandFolders = fs.readdirSync(commandFolderPath);
+if (fs.existsSync(commandFolderPath)) {
+	const commandFolders = fs.readdirSync(commandFolderPath);
 
-for (const folder of commandFolders) {
-	const folderPath = path.join(commandFolderPath, folder);
-	const commandFiles = fs
-		.readdirSync(folderPath)
-		.filter(file => file.endsWith(".js"));
+	for (const folder of commandFolders) {
+		const folderPath = path.join(commandFolderPath, folder);
+		const commandFiles = fs
+			.readdirSync(folderPath)
+			.filter(file => file.endsWith(".js"));
 
-	for (const file of commandFiles) {
-		const filePath = path.join(folderPath, file);
-		const command = require(filePath);
-		if ("data" in command && "execute" in command)
-			client.commands.set(command.data.name, command);
-		else
-			console.log(
-				`[WARNING] the command at ${filePath} is missing a required "data" or "execute" property.`,
-			);
+		for (const file of commandFiles) {
+			const filePath = path.join(folderPath, file);
+			const command = require(filePath);
+			if ("data" in command && "execute" in command)
+				client.commands.set(command.data.name, command);
+			else
+				console.log(
+					`[WARNING] the command at ${filePath} is missing a required "data" or "execute" property.`,
+				);
+		}
 	}
+} else {
+	console.log(
+		"[INFO] No commands folder found, skipping legacy commands registration.",
+	);
 }
 
 // Registration of Slash-Command Interactions.
@@ -194,18 +200,24 @@ const contextMenusFolderPath = path.join(
 	"interactions",
 	"context-menus",
 );
-const contextMenus = fs.readdirSync(contextMenusFolderPath);
+if (fs.existsSync(contextMenusFolderPath)) {
+	const contextMenus = fs.readdirSync(contextMenusFolderPath);
 
-for (const folder of contextMenus) {
-	const folderPath = path.join(contextMenusFolderPath, folder);
-	const files = fs.readdirSync(folderPath).filter(file => file.endsWith(".js"));
+	for (const folder of contextMenus) {
+		const folderPath = path.join(contextMenusFolderPath, folder);
+		const files = fs.readdirSync(folderPath).filter(file => file.endsWith(".js"));
 
-	for (const file of files) {
-		const filePath = path.join(folderPath, file);
-		const menu = require(filePath);
-		const keyName = `${folder.toUpperCase()} ${menu.data.name}`;
-		client.contextCommands.set(keyName, menu);
+		for (const file of files) {
+			const filePath = path.join(folderPath, file);
+			const menu = require(filePath);
+			const keyName = `${folder.toUpperCase()} ${menu.data.name}`;
+			client.contextCommands.set(keyName, menu);
+		}
 	}
+} else {
+	console.log(
+		"[INFO] No context-menus folder found, skipping context-menu registration.",
+	);
 }
 
 // Registration of Button-Command Interactions.
@@ -215,37 +227,49 @@ const buttonCommandsFolderPath = path.join(
 	"interactions",
 	"buttons",
 );
-const buttonCommands = fs.readdirSync(buttonCommandsFolderPath);
+if (fs.existsSync(buttonCommandsFolderPath)) {
+	const buttonCommands = fs.readdirSync(buttonCommandsFolderPath);
 
-for (const module of buttonCommands) {
-	const modulePath = path.join(buttonCommandsFolderPath, module);
-	const commandFiles = fs
-		.readdirSync(modulePath)
-		.filter(file => file.endsWith(".js"));
+	for (const module of buttonCommands) {
+		const modulePath = path.join(buttonCommandsFolderPath, module);
+		const commandFiles = fs
+			.readdirSync(modulePath)
+			.filter(file => file.endsWith(".js"));
 
-	for (const commandFile of commandFiles) {
-		const filePath = path.join(modulePath, commandFile);
-		const command = require(filePath);
-		client.buttonCommands.set(command.id, command);
+		for (const commandFile of commandFiles) {
+			const filePath = path.join(modulePath, commandFile);
+			const command = require(filePath);
+			client.buttonCommands.set(command.id, command);
+		}
 	}
+} else {
+	console.log(
+		"[INFO] No buttons folder found, skipping button-command registration.",
+	);
 }
 
 // Registration of Modal-Command Interactions.
 
 const modalCommandsFolderPath = path.join(__dirname, "interactions", "modals");
-const modalCommands = fs.readdirSync(modalCommandsFolderPath);
+if (fs.existsSync(modalCommandsFolderPath)) {
+	const modalCommands = fs.readdirSync(modalCommandsFolderPath);
 
-for (const module of modalCommands) {
-	const modulePath = path.join(modalCommandsFolderPath, module);
-	const commandFiles = fs
-		.readdirSync(modulePath)
-		.filter(file => file.endsWith(".js"));
+	for (const module of modalCommands) {
+		const modulePath = path.join(modalCommandsFolderPath, module);
+		const commandFiles = fs
+			.readdirSync(modulePath)
+			.filter(file => file.endsWith(".js"));
 
-	for (const commandFile of commandFiles) {
-		const filePath = path.join(modulePath, commandFile);
-		const command = require(filePath);
-		client.modalCommands.set(command.id, command);
+		for (const commandFile of commandFiles) {
+			const filePath = path.join(modulePath, commandFile);
+			const command = require(filePath);
+			client.modalCommands.set(command.id, command);
+		}
 	}
+} else {
+	console.log(
+		"[INFO] No modals folder found, skipping modal-command registration.",
+	);
 }
 
 // Registration of select-menus Interactions.
@@ -255,19 +279,25 @@ const selectMenusFolderPath = path.join(
 	"interactions",
 	"select-menus",
 );
-const selectMenus = fs.readdirSync(selectMenusFolderPath);
+if (fs.existsSync(selectMenusFolderPath)) {
+	const selectMenus = fs.readdirSync(selectMenusFolderPath);
 
-for (const module of selectMenus) {
-	const modulePath = path.join(selectMenusFolderPath, module);
-	const commandFiles = fs
-		.readdirSync(modulePath)
-		.filter(file => file.endsWith(".js"));
+	for (const module of selectMenus) {
+		const modulePath = path.join(selectMenusFolderPath, module);
+		const commandFiles = fs
+			.readdirSync(modulePath)
+			.filter(file => file.endsWith(".js"));
 
-	for (const commandFile of commandFiles) {
-		const filePath = path.join(modulePath, commandFile);
-		const command = require(filePath);
-		client.selectCommands.set(command.id, command);
+		for (const commandFile of commandFiles) {
+			const filePath = path.join(modulePath, commandFile);
+			const command = require(filePath);
+			client.selectCommands.set(command.id, command);
+		}
 	}
+} else {
+	console.log(
+		"[INFO] No select-menus folder found, skipping select-menu registration.",
+	);
 }
 
 // Registration of Slash-Commands in Discord API
